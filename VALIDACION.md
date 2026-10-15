@@ -19,3 +19,5 @@ Integración gráfica y móvil: total actual 66 pruebas del núcleo aprobadas. S
 15 de octubre de 2026: creación de entrenador y selección de equipo integradas en Unity. Total actual: 84 pruebas de dominio aprobadas (18 adicionales), compilación .NET con cero errores/advertencias; análisis sintáctico de 25 archivos C# sin errores. No valida compilación de APIs Unity ni render de Canvas/RenderTexture. Guardado probado con identidad, apariencia, accesorios y club; compatibilidad anterior y conservación de progreso comprobadas.
 
 Tácticas: 101 pruebas de dominio aprobadas; 17 adicionales para posesión, roles, objetivos y guardado. Escenario cinemático de 500 pasos completado. 28 archivos de Assets pasan sintaxis C# 9. La prueba de escena TacticalPlayCheck está preparada pero no ejecutada; no hay verificación de partido Unity ni PhysX.
+
+Dynasty IQ: se exportaron 51 muestras de un escenario de 10 segundos usando TacticalBrain real y se generó una visualización de posiciones a 0, 4 y 10 segundos. Las 101 pruebas siguen aprobadas. Es una prueba cinemática del núcleo; no una captura de Unity ni validación de PhysX.

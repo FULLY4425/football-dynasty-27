@@ -60,6 +60,6 @@ Consulta `GUIA-URP-PC-MOVIL.md`. El proyecto añade perfiles URP PC_High/Mobile_
 
 Se añadió un asistente Canvas de cuatro pasos con tres personajes originales, atuendos y accesorios, datos del entrenador y selección de liga/club. Conserva el perfil y el equipo en el guardado. Consulta `CREAR-ENTRENADOR.md` para funcionamiento, fuentes históricas y límites de la vista previa 3D. Los avatares son provisionales; el flujo aún necesita prueba dentro del editor.
 
-## Comportamiento táctico
+## Dynasty IQ · Inteligencia táctica
 
 Roles configurables, posesión compartida y máquina de estados conectados al movimiento sin balón. El extremo entra por dentro desde la banda opuesta y el creador ofrece apoyo corto. Consulta `TACTICAS.md` para uso, código, pruebas y la comprobación preparada en Play. Total del núcleo: 101 pruebas aprobadas; la ejecución de Unity sigue pendiente.

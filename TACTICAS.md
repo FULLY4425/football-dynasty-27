@@ -1,4 +1,4 @@
-# Roles y comportamiento táctico
+# Dynasty IQ · Inteligencia táctica
 
 Sistema propio, modular, de decisiones para jugadores sin balón. Usa los ejes del campo: X apunta a las porterías, Z a las bandas. Local ataca +X; visitante -X.
 

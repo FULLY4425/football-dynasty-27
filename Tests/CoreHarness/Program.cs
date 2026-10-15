@@ -166,5 +166,15 @@ var oldTacticalSave=CopySave(tacticalCareer);oldTacticalSave.roles=null;tactical
 var moving=new[]{TP(0,TacticalRole.CazadorDeAreas,20,22),TP(0,TacticalRole.ExtremoInvertido,10,-18),TP(0,TacticalRole.CreadorDeJuego,-10,0),TP(1,TacticalRole.CentralDeCobertura,40,5)};var movingPossession=new PossessionTracker();
 for(int tick=0;tick<500;tick++){movingPossession.Update(moving,tacticalBall,.15f,0,.02f);for(int i=1;i<3;i++){var d=TacticalBrain.Evaluate(i,moving,tacticalBall,movingPossession);float dx=d.Target.X-moving[i].Position.X,dz=d.Target.Z-moving[i].Position.Z,len=(float)Math.Sqrt(dx*dx+dz*dz);float stepSize=Math.Min(len,.1f);if(len>.001f)moving[i].Position=new PitchPoint(moving[i].Position.X+dx/len*stepSize,moving[i].Position.Z+dz/len*stepSize);}}
 Check(moving[1].Position.X>40&&Math.Abs(moving[1].Position.Z)<5&&PitchPoint.DistanceSquared(moving[2].Position,moving[0].Position)<144,"500-step simulation moves winger into box and playmaker into short support");
+if(args.Length==2&&args[0]=="--export-tactics"){
+ var demo=new[]{TP(0,TacticalRole.CazadorDeAreas,20,22),TP(0,TacticalRole.ExtremoInvertido,10,-18),TP(0,TacticalRole.CreadorDeJuego,-10,0),TP(1,TacticalRole.CentralDeCobertura,40,5)};
+ var detector=new PossessionTracker();var trace=new List<object>();
+ for(int tick=0;tick<=500;tick++){
+  detector.Update(demo,tacticalBall,.15f,0,.02f);
+  if(tick%10==0)trace.Add(new{time=tick*.02f,ball=new{x=tacticalBall.X,z=tacticalBall.Z},players=demo.Select((p,i)=>new{x=p.Position.X,z=p.Position.Z,role=p.Role.ToString(),action=TacticalBrain.Evaluate(i,demo,tacticalBall,detector).Action.ToString()}).ToArray()});
+  for(int i=1;i<3;i++){var d=TacticalBrain.Evaluate(i,demo,tacticalBall,detector);float dx=d.Target.X-demo[i].Position.X,dz=d.Target.Z-demo[i].Position.Z,len=(float)Math.Sqrt(dx*dx+dz*dz);if(len>.001f){float distance=Math.Min(.1f,len);demo[i].Position=new PitchPoint(demo[i].Position.X+dx/len*distance,demo[i].Position.Z+dz/len*distance);}}
+ }
+ File.WriteAllText(args[1],JsonSerializer.Serialize(trace));Console.WriteLine("Exported actual tactical decisions: "+args[1]);
+}
 Console.WriteLine($"SUCCESS {passed} checks. Domain only; not Unity graphics or PhysX.");
 
