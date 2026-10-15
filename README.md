@@ -6,7 +6,7 @@ Proyecto fuente para **Unity 6.3 LTS, 6000.3.26f1**, con Universal Render Pipeli
 
 Unity Hub 3.22.3 se instaló correctamente en este PC. No se completó la instalación/activación del editor. Su CLI empaquetada no pudo ejecutarse (acceso denegado), y la apertura automática de Hub fue rechazada por la política del entorno. No se realizó una compilación de Unity ni una comprobación visual del proyecto; las capturas de Godot no sirven como prueba de esta migración.
 
-El núcleo de C# compiló con .NET 8 y pasó **84 comprobaciones**. Esto valida la carrera, no el renderizador, APIs de Unity, controles, audio, rendimiento, shaders, ni PhysX.
+El núcleo de C# compiló con .NET 8 y pasó **101 comprobaciones**. Esto valida la carrera, no el renderizador, APIs de Unity, controles, audio, rendimiento, shaders, ni PhysX.
 
 ## Abrir en Unity
 
@@ -59,3 +59,7 @@ Consulta `GUIA-URP-PC-MOVIL.md`. El proyecto añade perfiles URP PC_High/Mobile_
 ## Inicio de carrera: entrenador y equipo
 
 Se añadió un asistente Canvas de cuatro pasos con tres personajes originales, atuendos y accesorios, datos del entrenador y selección de liga/club. Conserva el perfil y el equipo en el guardado. Consulta `CREAR-ENTRENADOR.md` para funcionamiento, fuentes históricas y límites de la vista previa 3D. Los avatares son provisionales; el flujo aún necesita prueba dentro del editor.
+
+## Comportamiento táctico
+
+Roles configurables, posesión compartida y máquina de estados conectados al movimiento sin balón. El extremo entra por dentro desde la banda opuesta y el creador ofrece apoyo corto. Consulta `TACTICAS.md` para uso, código, pruebas y la comprobación preparada en Play. Total del núcleo: 101 pruebas aprobadas; la ejecución de Unity sigue pendiente.
