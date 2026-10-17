@@ -1,0 +1,8 @@
+PASS balón detenido sobre la raya muestra NO GOL
+PASS revisión detiene la física
+PASS revisión NO GOL conserva resultado y reloj
+PASS continuar restaura la velocidad de juego
+PASS cruce completo activa revisión GOL y cuenta una vez
+PASS revisión GOL termina automáticamente
+PASS tras la revisión se continúa con la celebración
+SUCCESS 7 Unity goal-line review checks.

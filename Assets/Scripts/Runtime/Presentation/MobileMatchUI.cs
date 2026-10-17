@@ -16,6 +16,7 @@ namespace FootballDynasty
         public TouchActionButton Shoot { get; private set; }
         public TouchActionButton Pass { get; private set; }
         public TouchActionButton Switch { get; private set; }
+        public TouchActionButton Slide {get;private set;}
         public bool IsVisible => canvasRoot && canvasRoot.activeSelf;
 
         public void Initialize(FootballSimulator owner)
@@ -46,7 +47,7 @@ namespace FootballDynasty
             Shoot = CreateAction(safe, "A", new Vector2(-110, 180), new Color(.22f, .72f, .42f, .48f));
             Pass = CreateAction(safe, "B", new Vector2(-265, 135), new Color(.22f, .5f, .92f, .48f));
             Switch = CreateAction(safe, "C", new Vector2(-420, 180), new Color(.92f, .65f, .22f, .48f));
-            canvasRoot.SetActive(false);
+            Slide=CreateAction(safe,"D",new Vector2(-265,310),new Color(.85f,.25f,.22f,.6f));canvasRoot.SetActive(false);
         }
 
         RectTransform CreateImage(string name, Transform parent, Vector2 anchor, Vector2 position, float size, Color color)
@@ -113,7 +114,7 @@ namespace FootballDynasty
                 Joystick?.ResetInput();
                 Shoot?.ResetInput();
                 Pass?.ResetInput();
-                Switch?.ResetInput();
+                Switch?.ResetInput();Slide?.ResetInput();
             }
         }
 

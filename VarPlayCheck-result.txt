@@ -1,0 +1,7 @@
+PASS no se solicita VAR sin un incidente
+PASS penal registrado habilita solicitud del usuario
+PASS solicitud pausa el partido y rechaza duplicados
+PASS árbitro se desplaza al monitor con reloj detenido
+PASS VAR anuncia el penal registrado y conserva la reanudación
+PASS continuar restaura árbitro y velocidad sin permitir repetir el caso
+SUCCESS 6 Unity user-requested VAR checks.

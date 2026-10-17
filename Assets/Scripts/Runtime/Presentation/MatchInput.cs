@@ -5,7 +5,7 @@ namespace FootballDynasty
     public struct MatchInputFrame
     {
         public Vector3 Movement;
-        public bool Sprint, Shoot, Pass, Switch, Pause;
+        public bool Sprint, Shoot, Pass, Switch, Pause, Slide;
     }
 
     public sealed class MatchInput : MonoBehaviour
@@ -22,7 +22,7 @@ namespace FootballDynasty
                 move = mobile.Joystick.Value;
                 result.Shoot = mobile.Shoot.Consume();
                 result.Pass = mobile.Pass.Consume();
-                result.Switch = mobile.Switch.Consume();
+                result.Switch = mobile.Switch.Consume();result.Slide=mobile.Slide.Consume();
                 result.Sprint = move.sqrMagnitude > .85f * .85f;
             }
             else
@@ -33,7 +33,7 @@ namespace FootballDynasty
                 result.Shoot = Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space);
                 result.Pass = Input.GetKeyDown(KeyCode.J);
                 result.Switch = Input.GetKeyDown(KeyCode.L);
-                result.Pause = Input.GetKeyDown(KeyCode.P);
+                result.Pause = Input.GetKeyDown(KeyCode.P);result.Slide=Input.GetKeyDown(KeyCode.Q);
             }
 
             // Both devices use camera-relative movement on the pitch plane.

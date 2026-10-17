@@ -1,0 +1,10 @@
+PASS los 22 jugadores tienen un modelo articulado
+PASS animación de golpeo modifica la pierna
+PASS gol físico activa celebración del equipo anotador
+PASS equipo anotador celebra con brazos y gestos
+PASS rival reacciona sin celebrar
+PASS reloj deportivo detenido durante la celebración
+PASS celebración termina y rival saca de centro
+PASS replay conserva los gestos de celebración
+PASS replay mantiene tiempo creciente aunque el reloj esté detenido
+SUCCESS 9 Unity runtime animation checks.

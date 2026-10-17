@@ -5,14 +5,14 @@ namespace FootballDynasty
     public sealed class TeamTactics : MonoBehaviour
     {
         private FootballSimulator game;
-        private TacticalPlayer[] snapshot;
+        private TacticalPlayer[] snapshot;private float decisionTimer;
         public readonly PossessionTracker Possession = new PossessionTracker();
         public void Initialize(FootballSimulator owner)
         {
             game = owner;
         }
 
-        public void ResetPossession() => Possession.Reset();
+        public void ResetPossession(){Possession.Reset();decisionTimer=0;}
         // Called once, before all agents move. Every decision sees the same world snapshot.
         public void Tick(float dt)
         {
@@ -37,9 +37,15 @@ namespace FootballDynasty
 
             var ball = game.Ball.position;
             var point = new PitchPoint(ball.x, ball.z);
-            Possession.Update(snapshot, point, ball.y, game.Ball.linearVelocity.magnitude, dt);
-            for (int i = 0; i < count; i++)
-                game.Agents[i].Decision = TacticalBrain.Evaluate(i, snapshot, point, Possession);
+            Possession.Update(snapshot, point, ball.y, game.Ball.linearVelocity.magnitude, dt);if(Possession.Carrier>=0)game.NotifyReception(game.Agents[Possession.Carrier],true);
+            decisionTimer-=dt;if(decisionTimer>0)return;decisionTimer=.08f;
+            for (int i = 0; i < count; i++) {
+                var a=game.Agents[i];var level=a.Data.club==game.ClubId?MatchDifficulty.Medio:game.Career.Difficulty;
+                if(Time.fixedTime-a.LastDecisionTime<DifficultySettings.Reaction(level))continue;
+                a.LastDecisionTime=Time.fixedTime;
+                a.Decision = CoordinatedTactics.Evaluate(i, snapshot, point, Possession,level,new PitchPoint(game.Ball.linearVelocity.x,game.Ball.linearVelocity.z));
+                if(a==game.IntendedReceiver&&Time.fixedTime<game.ReceptionDeadline)a.Decision=new TacticalDecision{Target=new PitchPoint(Mathf.Clamp(ball.x+game.Ball.linearVelocity.x*.18f,-50,50),Mathf.Clamp(ball.z+game.Ball.linearVelocity.z*.18f,-32,32)),Action=TacticalAction.ApoyoCorto,Sprint=true};
+            }
         }
     }
 }

@@ -4,9 +4,13 @@ Proyecto fuente para **Unity 6.3 LTS, 6000.3.26f1**, con Universal Render Pipeli
 
 ## Estado real de la entrega
 
-Unity Hub 3.22.3 se instaló correctamente en este PC. No se completó la instalación/activación del editor. Su CLI empaquetada no pudo ejecutarse (acceso denegado), y la apertura automática de Hub fue rechazada por la política del entorno. No se realizó una compilación de Unity ni una comprobación visual del proyecto; las capturas de Godot no sirven como prueba de esta migración.
+Actualización del 16 de octubre de 2026: el Editor Unity 6000.3.26f1 está instalado y el proyecto se ejecutó en Play. El núcleo pasa **360 comprobaciones de lógica** y el código de ejecución/editor compiló con referencias reales de Unity. Se ejecutaron escenarios de reglas (14), animaciones y celebración (9), revisión de línea (7) y VAR solicitado (6), en las revisiones documentadas de esas funciones. Esto no valida un partido completo, rendimiento móvil ni una compilación Windows distribuible.
 
-El núcleo de C# compiló con .NET 8 y pasó **101 comprobaciones**. Esto valida la carrera, no el renderizador, APIs de Unity, controles, audio, rendimiento, shaders, ni PhysX.
+La última incorporación —portero con agarre de manos y carrera con rodillas/codos— compila y tiene pruebas de lógica; su nuevo escenario Play y revisión visual siguen pendientes porque el control automático de Unity fue rechazado al detectar entrada manual. Consulta [PORTERO-Y-CARRERA.md](PORTERO-Y-CARRERA.md).
+
+Incluye pantalla de once con 13 formaciones, previa de partido, Dynasty IQ con tres dificultades, saques y arbitraje de prototipo, celebraciones, revisiones de línea y VAR solicitado con **V**. No incluye todavía todas las leyes oficiales ni modelos humanos realistas.
+
+Documentación: [Once y formaciones](ONCE-Y-FORMACIONES.md), [Animaciones y goles](ANIMACIONES-Y-GOLES.md), [Línea de gol](REVISION-LINEA-GOL.md), [VAR](VAR-SOLICITADO.md), [Cobertura de reglas](REGLAMENTO-COBERTURA.md). Las notas de validación históricas de secciones anteriores describen la versión existente en su fecha.
 
 ## Abrir en Unity
 

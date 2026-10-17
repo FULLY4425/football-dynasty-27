@@ -10,7 +10,7 @@ namespace FootballDynasty
         private FootballSimulator game;
         private Transform focus;
         private CinemachineCamera broadcast;
-        private CinemachineBrain brain;
+        private CinemachineBrain brain;private CinemachineFollow follow;
         public void Initialize(FootballSimulator owner)
         {
             game = owner;
@@ -24,7 +24,7 @@ namespace FootballDynasty
             broadcast = rig.AddComponent<CinemachineCamera>();
             broadcast.Follow = focus;
             broadcast.LookAt = focus;
-            var follow = rig.AddComponent<CinemachineFollow>();
+            follow = rig.AddComponent<CinemachineFollow>();
             follow.FollowOffset = new Vector3(0, 24, 36);
             follow.TrackerSettings.BindingMode = BindingMode.WorldSpace;
             follow.TrackerSettings.PositionDamping = new Vector3(.35f, .2f, .35f);
@@ -49,12 +49,14 @@ namespace FootballDynasty
             var target = game.Ball.transform.position;
             if (game.Controlled)
                 target = Vector3.Lerp(target, game.Controlled.transform.position, .18f);
-            target.y = .3f;
-            target.x = Mathf.Clamp(target.x, -36, 36);
-            target.z = Mathf.Clamp(target.z * .5f, -12, 12);
+            if(game.IsCelebrating&&game.CelebrationLeader)target=game.CelebrationLeader.Body.position;
+            follow.FollowOffset=Vector3.Lerp(follow.FollowOffset,game.IsCelebrating?new Vector3(0,4,8):new Vector3(0,24,36),1-Mathf.Exp(-Time.deltaTime*3));
+            target.y = game.IsCelebrating?1:.3f;
+            target.x = Mathf.Clamp(target.x, game.IsCelebrating?-50:-36, game.IsCelebrating?50:36);
+            target.z = game.IsCelebrating?Mathf.Clamp(target.z,-31,31):Mathf.Clamp(target.z * .5f, -12, 12);
             focus.position = target;
             var lens = broadcast.Lens;
-            lens.FieldOfView = Mathf.Lerp(lens.FieldOfView, game.Running ? 50 : 45, 1 - Mathf.Exp(-Time.unscaledDeltaTime * 3));
+            lens.FieldOfView = Mathf.Lerp(lens.FieldOfView, game.IsCelebrating?45:game.Running ? 50 : 45, 1 - Mathf.Exp(-Time.unscaledDeltaTime * 3));
             broadcast.Lens = lens;
         }
     }

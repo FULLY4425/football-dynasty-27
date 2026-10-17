@@ -8,12 +8,46 @@ Database Fresh()=>JsonSerializer.Deserialize<Database>(File.ReadAllText(database
 
 int passed=0;void Check(bool value,string message){if(!value)throw new Exception(message);passed++;Console.WriteLine("PASS "+message);}
 
+var runPose=PlayerMotion.Sample(.2f,8,7,PlayerAction.None,2,false,false,0,true);
+Check(Math.Abs(runPose.leftLeg+runPose.rightLeg)<.001f&&Math.Abs(runPose.leftArm+runPose.rightArm)<.001f,"running alternates arms and legs");
+Check(PlayerMotion.Sample(.2f,8,8,PlayerAction.None,2,false,false,0,true).leftLeg!=runPose.leftLeg,"individual animation phase varies");
+foreach(var action in new[]{PlayerAction.Pass,PlayerAction.Shoot,PlayerAction.Receive,PlayerAction.Save,PlayerAction.ThrowIn}){var pose=PlayerMotion.Sample(0,0,1,action,.3f,false,false,0,true);Check(pose.rightLeg!=0||pose.spread!=0||pose.rightArm!=0,"action pose "+action);}
+for(int seed=0;seed<3;seed++){var pose=PlayerMotion.Sample(0,0,seed,PlayerAction.None,2,false,true,.2f,true);Check(pose.spread>0||pose.leftArm<0,"celebration style "+seed);}
+Check(PlayerMotion.Sample(0,0,1,PlayerAction.None,2,false,true,.2f,false).lean==12,"conceding team does not celebrate");
+Check(PlayerMotion.Sample(0,0,1,PlayerAction.None,2,true,false,0,true).lean==65,"slide pose overrides locomotion");
+Check(PlayerMotion.Sample(0,0,1,PlayerAction.Shoot,1,false,false,0,true).rightLeg==0,"kick pose ends after action");
+Check(PlayerMotion.StableSeed("player-1")==PlayerMotion.StableSeed("player-1")&&PlayerMotion.StableSeed("player-1")!=PlayerMotion.StableSeed("player-2"),"player animation seed deterministic");
+var animatedFrame=new ReplayFrame{time=0,ball=new ReplayPose(),players=new[]{new ReplayPose{leftArm=-160,spread=100,bob=.2f,lean=10,twist=15}}};var poseCopy=ReplayMath.Copy(animatedFrame);animatedFrame.players[0].leftArm=0;
+Check(poseCopy.players[0].leftArm==-160&&poseCopy.players[0].spread==100&&poseCopy.players[0].bob==.2f,"replay deep copies full animation pose");
+foreach(int side in new[]{-1,1}){
+Check(GoalLineReviewRules.ShouldReview(side*52.2f,.3f,0,side*52.45f,.3f,0,.1f,false),"review ball stopped on line "+side);
+Check(GoalLineReviewRules.ShouldReview(side*52.55f,.3f,0,side*52.2f,.3f,0,8,false),"review rebound from line "+side);
+Check(GoalLineReviewRules.Clearance(side,side*52.55f)<0&&GoalLineReviewRules.Clearance(side,side*52.62f)>0,"whole ball beyond line required "+side);
+Check(!GoalLineReviewRules.ShouldReview(side*52.4f,3,0,side*52.2f,3,0,8,false),"no review over crossbar "+side);
+Check(!GoalLineReviewRules.ShouldReview(side*52.4f,.3f,6,side*52.2f,.3f,6,8,false),"no review wide shot "+side);
+Check(!GoalLineReviewRules.ShouldReview(side*20,.3f,0,side*21,.3f,0,8,false),"no review normal play "+side);
+Check(!GoalLineReviewRules.ShouldReview(side*52.2f,.3f,0,side*52.5f,.3f,0,20,false),"wait for outcome of incoming shot "+side);
+}
+Check(VarDecisions.Goal(true,true)=="GOL CONFIRMADO"&&VarDecisions.Goal(true,false)=="GOL ANULADO"&&VarDecisions.Goal(false,true)=="NO GOL CONFIRMADO","VAR goal decisions follow evidence");
+Check(VarDecisions.Contact(true,true)=="PENAL CONFIRMADO"&&VarDecisions.Contact(true,false)=="FALTA CONFIRMADA"&&VarDecisions.Contact(false,true).StartsWith("SIN FALTA"),"VAR contact decisions follow first contact and area");
+var varEvent=new VarIncident(VarIncidentKind.Penalty,"PENAL CONFIRMADO","Contacto anterior al balón",10);Check(varEvent.Available(10)&&varEvent.Available(22)&&!varEvent.Available(22.01f)&&!varEvent.Available(9),"VAR incident expires and cannot be reviewed before occurring");
+foreach(int keeperTeam in new[]{0,1}){float x=keeperTeam==0?-48:48;
+Check(KeeperCatchRules.CanCatch(keeperTeam,new PitchPoint(x,0),new PitchPoint(x+.2f,0),1,1,12,80,false),"keeper catches own area "+keeperTeam);
+Check(!KeeperCatchRules.CanCatch(keeperTeam,new PitchPoint(0,0),new PitchPoint(0,0),1,1,12,80,false),"keeper cannot handle outside area "+keeperTeam);
+Check(!KeeperCatchRules.CanCatch(keeperTeam,new PitchPoint(x,0),new PitchPoint(x,0),1,1,12,80,true),"keeper rejects direct keeperTeammate backpass "+keeperTeam);
+Check(!KeeperCatchRules.CanCatch(keeperTeam,new PitchPoint(x,0),new PitchPoint(x,0),1,1,40,80,false)&&!KeeperCatchRules.CanCatch(keeperTeam,new PitchPoint(x,0),new PitchPoint(x,0),3,1,5,80,false),"keeper rejects unreachable or excessive speed "+keeperTeam);
+}
+var naturalPose=PlayerMotion.Sample(.9f,8,7,PlayerAction.None,2,false,false,0,true);Check(naturalPose.leftKnee>0||naturalPose.rightKnee>0,"running bends knee in recovery phase");Check(naturalPose.leftElbow<0&&naturalPose.rightElbow<0&&naturalPose.twist!=0,"running bends elbows and rotates torso");
 var c=new Career(Fresh());Check(c.Data.clubs.Length==136&&c.Data.players.Length==4006,"136 clubs and 4006 players");
 
 foreach(var l in c.Data.leagues){var schedule=Career.Schedule(l.clubs);Check(schedule.Count==(l.clubs.Length-1)*2,"full schedule "+l.name);Check(schedule.SelectMany(d=>d).Select(p=>p[0]+"/"+p[1]).Distinct().Count()==l.clubs.Length*(l.clubs.Length-1),"unique fixtures "+l.name);foreach(var day in schedule)if(day.SelectMany(p=>p).Distinct().Count()!=l.clubs.Length)throw new Exception("repeated club");}
 
 foreach(var f in Career.Formations.Keys)Check(c.SetFormation("madrid",f)&&c.Valid("madrid",c.Team("madrid").lineup,f),"lineup "+f);
 
+// Formation rows must preserve all eleven slots without visual collisions.
+foreach(var f in Career.Formations.Keys){var layout=FormationLayout.Slots(f);Check(layout.Length==11&&layout[0].Position=="POR"&&layout.Select(q=>q.Position).SequenceEqual(Career.Formations[f]),"layout roles "+f);Check(layout.All(q=>q.X>0&&q.X<1&&q.Y>0&&q.Y<1)&&layout.Select(q=>(q.X,q.Y)).Distinct().Count()==11,"unique bounded slots "+f);}
+var diamond=FormationLayout.Slots("4-3-1-2");Check(diamond.Count(q=>q.Position=="MED")==4&&diamond.Where(q=>q.Position=="MED").Select(q=>q.Y).Distinct().Count()==2,"diamond separates three midfielders and playmaker");
+c.SetFormation("madrid","4-3-1-2");var layoutSave=c.Snapshot();var layoutRestored=new Career(Fresh());layoutRestored.Restore(layoutSave);Check(layoutRestored.Team("madrid").formation=="4-3-1-2"&&layoutRestored.Team("madrid").lineup.SequenceEqual(c.Team("madrid").lineup),"diamond formation and lineup survive save restore");
 c.SetFormation("madrid","4-3-3");var ids=c.Team("madrid").lineup.ToArray();ids[1]=ids[2];Check(!c.Valid("madrid",ids,"4-3-3"),"duplicate lineup rejected");
 
 var messi=c.Players["player-45843"];double seller=c.Clubs[messi.club].budget,buyer=c.Clubs["madrid"].budget,fee=messi.value,bonus=messi.wage*4;
@@ -175,6 +209,103 @@ if(args.Length==2&&args[0]=="--export-tactics"){
   for(int i=1;i<3;i++){var d=TacticalBrain.Evaluate(i,demo,tacticalBall,detector);float dx=d.Target.X-demo[i].Position.X,dz=d.Target.Z-demo[i].Position.Z,len=(float)Math.Sqrt(dx*dx+dz*dz);if(len>.001f){float distance=Math.Min(.1f,len);demo[i].Position=new PitchPoint(demo[i].Position.X+dx/len*distance,demo[i].Position.Z+dz/len*distance);}}
  }
  File.WriteAllText(args[1],JsonSerializer.Serialize(trace));Console.WriteLine("Exported actual tactical decisions: "+args[1]);
+}
+var previewCareer = new Career(Fresh());
+var beforePreview = JsonSerializer.Serialize(previewCareer.Snapshot());
+foreach (var league in previewCareer.Data.leagues) foreach (var club in league.clubs) {
+ var preview = MatchPreview.Create(previewCareer,club);
+ Check(preview != null && preview.Fixture.competition == league.id && preview.Fixture.round == 0 && preview.Fixture.home != preview.Fixture.away && preview.Opponent != club, "preview real fixture " + club);
+}
+Check(beforePreview == JsonSerializer.Serialize(previewCareer.Snapshot()), "preview does not mutate career, budget or random seed");
+Check(MatchPreview.Create(previewCareer,"nonexistent") == null, "preview rejects unavailable club");
+var firstPreview = MatchPreview.Create(previewCareer,"madrid");
+previewCareer.Advance(new MatchResult{home=firstPreview.Fixture.home,away=firstPreview.Fixture.away,hg=2,ag=1});
+Check(MatchPreview.Create(previewCareer,"madrid").Fixture.round == 1, "next preview follows calendar advancement");
+Check(firstPreview.Form(previewCareer,firstPreview.Fixture.home) == "V" && firstPreview.Form(previewCareer,firstPreview.Fixture.away) == "D", "preview recent form uses home and away scores");
+for(int round=1;round<40;round++)previewCareer.Advance();
+Check(MatchPreview.Create(previewCareer,"madrid") == null, "no stale preview after end of season");
+
+
+// Match rules: geometry, delayed intervention and both attacking directions.
+var defenders=new[]{new TacticalPlayer{Team=1,Position=new PitchPoint(50,0)},new TacticalPlayer{Team=1,Position=new PitchPoint(40,0)},new TacticalPlayer{Team=0,Position=new PitchPoint(43,5)},new TacticalPlayer{Team=0,Position=new PitchPoint(30,0)}};
+Check(RefereeRules.OffsidePosition(0,new PitchPoint(43,5),new PitchPoint(30,0),defenders),"offside beyond ball and second-last opponent");
+Check(!RefereeRules.OffsidePosition(0,new PitchPoint(40,5),new PitchPoint(30,0),defenders),"level with second-last opponent is onside");
+Check(!RefereeRules.OffsidePosition(0,new PitchPoint(43,5),new PitchPoint(45,0),defenders),"receiver behind ball is onside");
+Check(!RefereeRules.OffsidePosition(0,new PitchPoint(-1,5),new PitchPoint(-10,0),defenders),"own half never offside");
+var reverseDefenders=defenders.Select(p=>new TacticalPlayer{Team=1-p.Team,Position=new PitchPoint(-p.Position.X,p.Position.Z)}).ToArray();
+Check(RefereeRules.OffsidePosition(1,new PitchPoint(-43,5),new PitchPoint(-30,0),reverseDefenders),"away offside mirrors attack direction");
+var offsideTracker=new OffsideTracker();offsideTracker.Capture(3,defenders,new PitchPoint(30,0));defenders[2].Position=new PitchPoint(20,5);
+Check(offsideTracker.Touch(2,0,true),"offside snapshot survives attacker returning onside before touch");
+offsideTracker.Capture(3,reverseDefenders,new PitchPoint(-30,0));
+Check(!offsideTracker.Touch(0,0,false)&&offsideTracker.Touch(2,1,false),"defensive deflection does not reset offside snapshot");
+offsideTracker.Capture(3,reverseDefenders,new PitchPoint(-30,0));offsideTracker.Touch(0,0,true);
+Check(!offsideTracker.Touch(2,1,true),"opponent deliberate play resets offside");
+Check(RefereeRules.Foul(0,new PitchPoint(-40,0))==RestartKind.Penalty,"home defender foul in own penalty area");
+Check(RefereeRules.Foul(1,new PitchPoint(40,0))==RestartKind.Penalty,"away defender foul in own penalty area");
+Check(RefereeRules.Foul(0,new PitchPoint(40,0))==RestartKind.FreeKick,"foul in opponent penalty area is not penalty");
+Check(RefereeRules.Foul(1,new PitchPoint(35.99f,0))==RestartKind.FreeKick,"contact outside penalty area is free kick");
+Check(RefereeRules.Foul(1,new PitchPoint(36,20.16f))==RestartKind.Penalty,"penalty area boundary belongs to area");
+Check(RefereeRules.Foul(1,new PitchPoint(40,20.2f))==RestartKind.FreeKick,"wide contact outside penalty area");
+float cleanBall=RefereeRules.ContactFraction(new PitchPoint(0,0),new PitchPoint(4,0),new PitchPoint(2,0),.4f);
+float lateBody=RefereeRules.ContactFraction(new PitchPoint(0,0),new PitchPoint(4,0),new PitchPoint(3,0),.65f);
+Check(cleanBall>=0&&cleanBall<lateBody,"swept slide detects ball before body");
+Check(RefereeRules.ContactFraction(new PitchPoint(0,0),new PitchPoint(4,0),new PitchPoint(1,0),.65f)<cleanBall,"swept slide detects body before ball");
+Check(RefereeRules.ContactFraction(new PitchPoint(0,0),new PitchPoint(4,0),new PitchPoint(2,3),.65f)<0,"missed slide has no invented contact");
+Check(RefereeRules.ContactFraction(new PitchPoint(0,0),new PitchPoint(0,0),new PitchPoint(0,0),.65f)==0,"already overlapping capsule is a contact");
+Check(DifficultySettings.Reaction(MatchDifficulty.Facil)>DifficultySettings.Reaction(MatchDifficulty.Medio)&&DifficultySettings.Reaction(MatchDifficulty.Medio)>DifficultySettings.Reaction(MatchDifficulty.Dificil),"hard AI reacts more quickly");
+Check(DifficultySettings.AimError(MatchDifficulty.Facil)>DifficultySettings.AimError(MatchDifficulty.Medio)&&DifficultySettings.AimError(MatchDifficulty.Medio)>DifficultySettings.AimError(MatchDifficulty.Dificil),"hard AI improves precision without changing player ratings");
+var rulesCareer=new Career(Fresh());rulesCareer.Difficulty=MatchDifficulty.Dificil;var rulesReload=new Career(Fresh());rulesReload.Restore(CopySave(rulesCareer));
+Check(rulesReload.Difficulty==MatchDifficulty.Dificil,"difficulty survives career save");
+RejectWithoutMutation(rulesCareer,r=>r.difficulty=(MatchDifficulty)99,"invalid difficulty rejected atomically");
+Check(CompetitionMenu.ForClub(rulesCareer,"madrid").Any(t=>t.id=="cup-spain"),"Copa del Rey shown for eligible Spanish club");
+Check(CompetitionMenu.ForClub(rulesCareer,"arsenal").Any(t=>t.id=="cup-england"),"FA Cup shown for eligible English club");
+var europaTournament=rulesCareer.Tournaments.Single(t=>t.id=="europa");
+Check(europaTournament.participants.Length==36&&!europaTournament.participants.Intersect(rulesCareer.Data.champions).Any(),"Europa seeded separately from Champions");
+Check(CompetitionMenu.ForClub(rulesCareer,europaTournament.participants[0]).Any(t=>t.id=="europa"),"Europa shown only for a participant");
+Check(CompetitionMenu.ForClub(rulesCareer,rulesCareer.Data.champions[0]).Any(t=>t.id=="champions")&&!CompetitionMenu.ForClub(rulesCareer,rulesCareer.Data.champions[0]).Any(t=>t.id=="europa"),"Champions club menu does not invent Europa qualification");
+var legacyCups=CopySave(rulesCareer);legacyCups.tournaments=legacyCups.tournaments.Where(t=>t.id!="europa").ToArray();rulesReload.Restore(legacyCups);
+Check(rulesReload.Tournaments.Any(t=>t.id=="europa"),"legacy saves migrate Europa without losing existing tournaments");
+var block=new TacticalPlayer[22];for(int i=0;i<22;i++){int blockSlot=i%11,blockTeam=i/11;float dir=blockTeam==0?1:-1;var role=blockSlot==0?TacticalRole.Portero:blockSlot<5?TacticalRole.CentralDeCobertura:blockSlot<8?TacticalRole.CreadorDeJuego:TacticalRole.ExtremoInvertido;block[i]=new TacticalPlayer{Team=blockTeam,Role=role,Anchor=new PitchPoint(dir*(blockSlot<5?-30:blockSlot<8?-10:18),(blockSlot%4-1.5f)*10),Position=new PitchPoint(dir*(blockSlot<5?-30:blockSlot<8?-10:18),(blockSlot%4-1.5f)*10)};}
+foreach(var level in new[]{MatchDifficulty.Facil,MatchDifficulty.Medio,MatchDifficulty.Dificil}){
+ var blockPossession=new PossessionTracker();blockPossession.Update(block,new PitchPoint(0,0),3,20,.6f);
+ var choices=Enumerable.Range(1,10).Select(i=>CoordinatedTactics.Evaluate(i,block,new PitchPoint(0,0),blockPossession,level)).ToArray();
+ var held=choices.Where(d=>d.Action!=TacticalAction.Recuperar).ToArray();
+ Check(held.Max(d=>d.Target.X)-held.Min(d=>d.Target.X)<=37,"coordinated block limits distance between defensive and attacking lines "+level);
+ Check(choices.Count(d=>d.Action==TacticalAction.Recuperar)==1,"one recovering player rather than whole team chasing "+level);
+ Check(choices.All(d=>Math.Abs(d.Target.X)<=50&&Math.Abs(d.Target.Z)<=29),"coordinated targets remain on pitch "+level);
+}
+
+
+var partialExit=BallBoundary.Evaluate(new PitchPoint(0,33),new PitchPoint(0,34.10f),0);
+Check(partialExit.Kind==RestartKind.None,"ball must entirely cross touchline");
+foreach(int lastTouch in new[]{0,1})foreach(float touchSide in new[]{-1f,1f}){
+ var throwExit=BallBoundary.Evaluate(new PitchPoint(5,touchSide*33),new PitchPoint(9,touchSide*35),lastTouch);
+ Check(throwExit.Kind==RestartKind.ThrowIn&&throwExit.Team==1-lastTouch&&throwExit.Spot.Z==touchSide*34&&throwExit.Spot.X>5&&throwExit.Spot.X<9,"throw-in assigned to opponent at interpolated crossing "+lastTouch+"/"+touchSide);
+}
+Check(BallBoundary.Evaluate(new PitchPoint(51,20),new PitchPoint(54,20),0).Kind==RestartKind.GoalKick,"attacker last touch over opponent goal line: goal kick");
+Check(BallBoundary.Evaluate(new PitchPoint(51,20),new PitchPoint(54,20),1).Kind==RestartKind.CornerKick,"defender last touch over own goal line: corner");
+var leftCorner=BallBoundary.Evaluate(new PitchPoint(-51,-20),new PitchPoint(-54,-20),0);
+Check(leftCorner.Kind==RestartKind.CornerKick&&leftCorner.Team==1&&leftCorner.Spot.X==-52.5f&&leftCorner.Spot.Z==-34,"left corner mirrors team and restart spot");
+Check(BallBoundary.Evaluate(new PitchPoint(50,33),new PitchPoint(60,45),0).Kind==RestartKind.ThrowIn,"diagonal exit uses first crossed line");
+Check(BallBoundary.Evaluate(new PitchPoint(50,30),new PitchPoint(60,35),1).Kind==RestartKind.CornerKick,"goal line crossed before touchline selects corner");
+Check(BallBoundary.Evaluate(new PitchPoint(0,33),new PitchPoint(0,35),-1).Kind==RestartKind.None,"unknown last touch does not invent restart ownership");
+Check(ControlSelection.CanReceive(0,0,true,20,5,4),"deliberate reception switches to own receiver");
+Check(!ControlSelection.CanReceive(0,1,true,0,5,4),"opponent reception never transfers human control");
+Check(!ControlSelection.CanReceive(0,0,false,25,5,4),"fast incidental deflection does not steal control");
+Check(!ControlSelection.CanReceive(0,0,true,0,5,6),"manual change has brief priority over automatic selection");
+Check(ControlSelection.CanReceive(0,0,false,5,5,4),"controlled slow ball contact selects own receiver");
+var passOpponents=new[]{new TacticalPlayer{Team=1,Position=new PitchPoint(5,0)}};
+Check(Passing.Score(new PitchPoint(0,0),new PitchPoint(10,0),0,passOpponents)>Passing.Score(new PitchPoint(0,0),new PitchPoint(10,8),0,passOpponents),"passing AI prefers clear lane over intercepted straight pass");
+Check(Passing.Score(new PitchPoint(0,0),new PitchPoint(10,0),0,Array.Empty<TacticalPlayer>())<Passing.Score(new PitchPoint(0,0),new PitchPoint(-10,0),0,Array.Empty<TacticalPlayer>()),"safe forward progress preferred over equally distant back pass");
+var predictivePlayers=new[]{new TacticalPlayer{Team=0,Role=TacticalRole.CentralDeCobertura,Position=new PitchPoint(-5,0),Anchor=new PitchPoint(-20,0)},new TacticalPlayer{Team=0,Role=TacticalRole.CreadorDeJuego,Position=new PitchPoint(-20,15),Anchor=new PitchPoint(-10,15)},new TacticalPlayer{Team=1,Role=TacticalRole.CazadorDeAreas,Position=new PitchPoint(0,0),Anchor=new PitchPoint(0,0)}};
+var pressurePossession=new PossessionTracker();pressurePossession.Update(predictivePlayers,new PitchPoint(0,0),.15f,1,.02f);
+var predictiveEasy=CoordinatedTactics.Evaluate(0,predictivePlayers,new PitchPoint(0,0),pressurePossession,MatchDifficulty.Facil,new PitchPoint(10,0));
+var predictiveHard=CoordinatedTactics.Evaluate(0,predictivePlayers,new PitchPoint(0,0),pressurePossession,MatchDifficulty.Dificil,new PitchPoint(10,0));
+Check(predictiveHard.Target.X>predictiveEasy.Target.X,"hard pressure anticipates travelling ball further ahead");
+
+foreach(float cornerX in new[]{-52.5f,52.5f})foreach(float cornerZ in new[]{-34f,34f}){
+ var legalRestart=RestartPlacement.KeepAway(new PitchPoint(cornerX,cornerZ),new PitchPoint(cornerX,cornerZ),9.3f);
+ Check(Math.Abs(legalRestart.X)<=51.5f&&Math.Abs(legalRestart.Z)<=33&&PitchPoint.DistanceSquared(legalRestart,new PitchPoint(cornerX,cornerZ))>=86.48f,"restart distance remains legal after clamping near corner "+cornerX+"/"+cornerZ);
 }
 Console.WriteLine($"SUCCESS {passed} checks. Domain only; not Unity graphics or PhysX.");
 

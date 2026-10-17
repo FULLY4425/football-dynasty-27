@@ -11,7 +11,7 @@ namespace FootballDynasty {
  [Serializable] public class SavedBudget {public string club;public double budget;}
  [Serializable] public class MatchResult {public string home,away,competition,winner;public int hg,ag,round;public bool penalties;}
  [Serializable] public class SavedRole {public string player;public TacticalRole role;}
- [Serializable] public class CareerSave {public SavedRole[] roles;public CoachProfile coach;public string managedClub;public int version=1,season=2026,round;public SavedTeam[] teams;public SavedOwner[] owners;public SavedBudget[] budgets;public MatchResult[] results;public Tournament[] tournaments;public int rng;}
+ [Serializable] public class CareerSave {public MatchDifficulty difficulty;public SavedRole[] roles;public CoachProfile coach;public string managedClub;public int version=1,season=2026,round;public SavedTeam[] teams;public SavedOwner[] owners;public SavedBudget[] budgets;public MatchResult[] results;public Tournament[] tournaments;public int rng;}
  [Serializable] public class Tournament {public string id,name,stage,champion;public string[] participants,alive,direct;public int phase,leg;public List<MatchResult> games=new List<MatchResult>();public List<Tie> ties=new List<Tie>();}
  [Serializable] public class Tie {public string a,b;public int ga,gb;}
  public readonly struct TransferResult {public readonly bool Ok;public readonly string Message;public TransferResult(bool ok,string message){Ok=ok;Message=message;}}

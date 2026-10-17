@@ -1,0 +1,15 @@
+PASS barrida limpia mueve el Rigidbody del balón sin pitar falta
+PASS contacto primero con rival fuera del área: falta y reanudación
+PASS falta del defensor en su área: penal en el punto de once metros
+PASS barrida fallida sin contacto no inventa una falta
+PASS posición adelantada no se sanciona hasta intervenir
+PASS receptor adelantado al pase: tiro indirecto al tocar, aunque regrese
+PASS acción barrida activa el estado y animación del jugador
+PASS recepción del compañero cambia el jugador controlado
+PASS saque de banda se ejecuta desde FootballAgent y no permite gol directo
+PASS choque con árbitro suelta un balón neutral que debe caer al suelo
+PASS balón neutral no admite gol con un único jugador
+PASS balón neutral admite gol después de dos jugadores distintos
+PASS saque de meta se ejecuta con portero y no permite autogol directo
+PASS doble toque del ejecutor produce tiro indirecto
+SUCCESS 14 runtime checks; geometry uses live Unity actors and Rigidbodies, not a full timed match.

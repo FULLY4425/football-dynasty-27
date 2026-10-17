@@ -83,7 +83,9 @@ namespace FootballDynasty.Editor
                 failed = true;
             if (elapsed < 10)
                 return;
-            bool ok = !failed && wing.Body.position.x > 40 && Mathf.Abs(wing.Body.position.z) < 5 && Vector3.Distance(creator.Body.position, carrier.Body.position) < 12;
+            // The coordinated block no longer sends a winger to x=43 regardless of the ball.
+            var wingTarget = new Vector3(wing.Decision.Target.X, wing.Body.position.y, wing.Decision.Target.Z);
+            bool ok = !failed && wing.Body.position.x > 30 && Mathf.Abs(wing.Body.position.z) < 6 && Vector3.Distance(wing.Body.position, wingTarget) < 2 && Vector3.Distance(creator.Body.position, carrier.Body.position) < 12;
             game.Status = ok ? "Prueba táctica completada: diagonal y apoyo correctos." : "La prueba táctica falló: revisa la consola.";
             if (ok)
                 Debug.Log(game.Status);
